@@ -37,7 +37,7 @@ for i = 1:8
     % define slip condition (this will change after ground truth)
     % slip occurs if sensor 8 <0.6 (low pressure on Sensor 8)
     % or if any sensors 1-7 are > 0.5 (high pressure on other sensors)
-    slip_labels = (data.Sensor8 <0.4) | any(sensor_values(:,1:7) > 0.3, 2);
+    slip_labels = (data.Sensor8 <0.7) | any(sensor_values(:,1:7) > 0.6, 2);
 
     %  now we apply the moving window 
     num_samples = length(time);
@@ -76,7 +76,7 @@ for i = 1:2
     sensor_values = table2array(data(:,2:9));
 
     % defne slip condition for test data 
-    slip_labels = (data.Sensor8 < 0.4) | any(sensor_values(:,1:7)> 0.3,2);
+    slip_labels = (data.Sensor8 < 0.7) | any(sensor_values(:,1:7)> 0.6,2);
 
     % apply moving window 
     num_samples = length(time);
