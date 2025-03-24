@@ -1,5 +1,6 @@
 import time
 import datetime
+import pathlib
 
 from tactile import Tactile
 
@@ -19,7 +20,7 @@ def main():
     # instantiate the tactile sensor
     tactile = Tactile(
         start_time = start,
-        port_num = 0,
+        port_num = 1,
         baudrate = 115200, 
         num_tactile_cells = 7, 
         num_sensors = 2,
@@ -27,11 +28,13 @@ def main():
         method = "hex"
     )
 
+    REFRESH_RATE_HZ = 60
+
     # check that the tactile sensor is connected
     if(tactile.connected):
         print("Connected!")
-    else:
-        raise(Exception("\n========================\nTrouble Connecting Tactile Sensor! Please unplug & plug the USB and try again!\n======================="))
+    #else:
+    #    raise(Exception("\n========================\nTrouble Connecting Tactile Sensor! Please unplug & plug the USB and try again!\n======================="))
     
     # Get the name of the CSV file from the user
     print("=========================")
@@ -42,7 +45,7 @@ def main():
     tactile.start()
 
     # Read the tactile sensor to a CSV
-    csv_file = open(f"data/{csv_name}_data_{time_string}.csv", "w")
+    csv_file = open(f"{csv_name}_data_{time_string}.csv", "w")
     csv_file.write(f"time_ms,L7,L6,L5,L4,L3,L2,L1,R7,R6,R5,R4,R3,R2,R1,\n")
     try:
         while(tactile.is_reading_data):
@@ -51,8 +54,8 @@ def main():
             #time_s, data = tactile.get_smoothed_data()
             # write data to csv and print to console
             write_and_print_tactie_data(csv_file, time_s, data)
-            # save data 20 times a second
-            time.sleep(0.05)
+            # save data given refresh rate
+            time.sleep(1/REFRESH_RATE_HZ)
     except:
         # stop the tactile sensor reading when an exception occurs
         tactile.stop()

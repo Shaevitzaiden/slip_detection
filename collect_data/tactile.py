@@ -21,7 +21,8 @@ class Tactile():
         self.method = method
         
         # MAX_PORTS = 32
-        PORT = f"/dev/ttyACM{port_num}"
+        PORT = "COM3"
+        # f"/dev/ttyACM{port_num}"
         # serial speed  (bits per seconds)
         BAUDRATE = baudrate
         # serial timout (seconds)
@@ -57,13 +58,13 @@ class Tactile():
         # - calibrate the sensor -
         print("Calibrating sensor...")
         # Get the calibrated sensor values
+        self.last_readout = [0]*self.data_len
+        self.time_last_updated = 0
         self.calibration_values = self.calibrate_sensor(num_readings=5)
         # indicate the offset from zero to allow the sensors to fluctuate at rest
         self.calibration_buffer_offset = 10000
 
         # Read the calibrated data to initiallize the last reported reading
-        self.last_readout = None
-        self.time_last_updated = None
         self.sensor_buffer = self.initiallize_sensor_buffer(num_readings=3)
         self.buffer_counter = 0
 
@@ -79,6 +80,7 @@ class Tactile():
         calibration_reading = np.zeros(dimensions, dtype=np.uint32)
         for i in range(num_readings):
             time.sleep(0.5)
+            print(self.read_raw_data()[1])
             calibration_reading[i, :] = np.array(self.read_raw_data()[1], dtype=np.uint32)
         calibration_reading = np.median(calibration_reading, axis=0)
         calibration_reading = calibration_reading.astype("uint32")
@@ -112,6 +114,7 @@ class Tactile():
             print(b)
             if b == 255:
                 start_byte_received = True
+            time.sleep(0.5)
         # return status of acknowledgement bit
         return start_byte_received
 
@@ -150,6 +153,8 @@ class Tactile():
                 else:
                     latest_time, latest_readout = self.read_raw_data()
                 # update the sensor buffer with the newest tactile data
+                if(len(latest_readout) != self.data_len):
+                    continue
                 self.buffer_counter += 1
                 self.buffer_counter %= 3
                 with threading.Lock():
@@ -220,9 +225,16 @@ class Tactile():
         msg = ""
         while (b != '\n'):
             msg += b
+            while(self.serObj.inWaiting() == 0):
+                time.sleep(0.001)
             b = str(self.serObj.read(1).decode())
         
         msg = msg.split(';')
+
+        if(len(msg) != self.data_len+1):
+            print(f"ERROR: Got {msg}")
+            return(self.last_readout)
+        
         hex_list = list()
         for hex_string in msg[0:len(msg)-1]:
             hex_val = int(hex_string, 16)

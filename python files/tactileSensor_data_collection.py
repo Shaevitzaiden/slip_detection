@@ -8,10 +8,10 @@ class Tactile():
         # Change this for less more tactile sensors (1 - 4)
         NUM_SENSORS = 2
         # Length of data stream from microcontroller, assumes 8 barometers per tactile sensor
-        self.data_len = NUM_SENSORS * 8 
+        self.data_len = NUM_SENSORS * 7 
         
         # MAX_PORTS = 32
-        PORT = "COM6" # f"/dev/ttyACM{port_num}"
+        PORT = "COM3" # f"/dev/ttyACM{port_num}"
         # serial speed  (bits per seconds)
         BAUDRATE = 250000
         # serial timout (seconds)
