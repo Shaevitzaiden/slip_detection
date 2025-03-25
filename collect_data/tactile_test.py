@@ -20,7 +20,7 @@ def main():
     # instantiate the tactile sensor
     tactile = Tactile(
         start_time = start,
-        port_num = "COM6",
+        port_num = "COM3",
         baudrate = 115200, 
         num_tactile_cells = 7, 
         num_sensors = 2,
