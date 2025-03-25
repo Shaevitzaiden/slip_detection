@@ -1,3 +1,4 @@
+import serial
 from serial import Serial
 import numpy as np
 import time
@@ -21,8 +22,12 @@ class Tactile():
         self.method = method
         
         # MAX_PORTS = 32
-        PORT = "COM3"
-        # f"/dev/ttyACM{port_num}"
+        if(isinstance(port_num, str)):
+            PORT = port_num
+        elif(isinstance(port_num, str)):
+            PORT = f"/dev/ttyACM{port_num}"
+        else:
+            raise(Exception("Invalid port number! Use either String for Windows COM or an integer for Linux ttyACM"))
         # serial speed  (bits per seconds)
         BAUDRATE = baudrate
         # serial timout (seconds)
@@ -35,7 +40,7 @@ class Tactile():
         self.serObj = Serial(
             port=PORT,
             baudrate=BAUDRATE,
-            dsrdtr=True,
+            dsrdtr=False,
             write_timeout=WRITE_TIMEOUT,
             timeout=TIMEOUT
         )
@@ -51,7 +56,7 @@ class Tactile():
         # Start the serial communication
         self.connected = self.start_serial_communication()
         if(not self.connected):
-            print("Problem with starting serial communication")
+            raise Exception("Problem with starting serial communication! Please try again...")
         else:
             print("Serial communication established!")
 
@@ -102,19 +107,25 @@ class Tactile():
 
     def start_serial_communication(self):
         # Write an initial bit to the microcontroller to initiate serial communication
-        self.serObj.write(b'a')
+        try:
+            self.serObj.write(b'a')
+        except serial.serialutil.SerialTimeoutException:
+            print("Write timeout reached! Skipping sending initial bit")
         # get the starting time and timeout to wait for acknowledgement bit
         send_time = time.time()
-        timeout = 3
+        timeout = 5
         # flag indicating return character received
         start_byte_received = False
         # wait for return byte, stop trying if exceed timeout
         while not start_byte_received and ((time.time()-send_time)<timeout):
             b = int.from_bytes(self.serObj.read(1),'big')
             print(b)
-            if b == 255:
+            if b != 0:
                 start_byte_received = True
-            time.sleep(0.5)
+            else:
+                self.serObj.reset_input_buffer()
+                self.serObj.reset_output_buffer()
+            time.sleep(0.1)
         # return status of acknowledgement bit
         return start_byte_received
 
@@ -237,6 +248,9 @@ class Tactile():
         
         hex_list = list()
         for hex_string in msg[0:len(msg)-1]:
+            if(hex_string == ''):
+                print(f"VALUE ERROR: In {msg}")
+                return(self.last_readout)
             hex_val = int(hex_string, 16)
             hex_list.append(hex_val)
         return hex_list
