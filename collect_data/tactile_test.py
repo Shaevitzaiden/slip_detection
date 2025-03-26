@@ -47,7 +47,7 @@ def main():
     # Read the tactile sensor to a CSV
     dirpath = pathlib.Path(__file__)
     dirpath = dirpath.parent
-    dirpath = dirpath.joinpath("data")
+    dirpath = dirpath.joinpath("data_day2")
     filename = str(dirpath / f"{csv_name}_data_{time_string}.csv")
     csv_file = open(filename, "w")
     csv_file.write(f"time_ms,L7,L6,L5,L4,L3,L2,L1,R7,R6,R5,R4,R3,R2,R1,\n")
