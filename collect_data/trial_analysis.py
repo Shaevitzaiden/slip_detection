@@ -47,12 +47,14 @@ baseline_reading_left = np.mean(left_data[0:10, :], axis=0)
 data_ref_left = left_data - baseline_reading_left
 
 for i in range(len(data_ref_left[0,:])):
-    ax[0].plot(time, savgol_filter(data_ref_left[:,i], 50, 2), label=f"L{7-i}")
+    ax[0].plot(time, data_ref_left[:,i], label=f"L{7-i}")
+    # ax[0].plot(time, savgol_filter(data_ref_left[:,i], 50, 2), label=f"L{7-i}")
 
 
 ax[0].set_title("Left Finger")
 ax[0].set_xlabel("time (s)")
 ax[0].set_ylabel("relative pressure (mbar)")
+ax[0].set_ylim([-300, 300])
 
 ax[0].legend()
 
@@ -66,12 +68,13 @@ baseline_reading_right = np.mean(right_data[0:10, :], axis=0)
 data_ref_right = right_data - baseline_reading_right
 
 for i in range(len(data_ref_right[0,:])):
-    # ax[1].plot(time, data_ref_right[:,i], label=f"R{7-i}")
-    ax[1].plot(time, savgol_filter(data_ref_right[:,i], 50, 2), label=f"R{7-i}")
+    ax[1].plot(time, data_ref_right[:,i], label=f"R{7-i}")
+    # ax[1].plot(time, savgol_filter(data_ref_right[:,i], 50, 2), label=f"R{7-i}")
 
 
 ax[1].set_title("Right Finger")
 ax[1].set_xlabel("time (s)")
+ax[1].set_ylim([-300, 300])
 
 ax[1].legend()
 
