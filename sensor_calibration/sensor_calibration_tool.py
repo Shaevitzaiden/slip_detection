@@ -37,16 +37,25 @@ class DictCollection(Sequence):
 
     def __len__(self):
         return len(self.data_dicts)
+    
+    def __str__(self):
+        # Basic dump of class contents to terminal when printing
+        attrs = vars(self)
+        return '\n \n'.join("%s: \n %s" % item for item in attrs.items())
+
+    def append(self, d):
+        self.data_dicts.append(d)
 
 
-
-def read_tactile_data(filename:str) -> np.array:
-    table = pd.read_csv("filename", skiprows=1)
+def read_tactile_data(filename:str, parent_directory=SENSOR_FILE_PATH) -> np.array:
+    f = os.path.join(parent_directory,filename)
+    table = pd.read_csv(f, skiprows=1)
     data_array = table.to_numpy()
     return data_array
 
-def read_mark10_data(filename:str) -> np.array:
-    table = pd.read_csv("filename", skiprows=4)
+def read_mark10_data(filename:str, parent_directory=MARK10_FILE_PATH) -> np.array:
+    f = os.path.join(parent_directory,filename)
+    table = pd.read_csv(f, skiprows=4)
     data_array = table.to_numpy()
     return data_array
 
@@ -68,10 +77,12 @@ if __name__ == "__main__":
     # Get sensor files (loaded in order of naming) and data
     sensor_data_filenames = get_data_files(SENSOR_FILE_PATH, common_filename_txt="rightsensor_cell")
     print("\n sensor loaded files: ")
-    
-    for i in sensor_data_filenames:
-        print("Loading: ", i)
+    data = DictCollection()
+    for f in sensor_data_filenames:
+        print("Loading: ", f)
+        data.append({"raw" : read_tactile_data(f)})
 
+    print(data)
 
 
     # Get mark10 files (loaded in order of naming) and data
