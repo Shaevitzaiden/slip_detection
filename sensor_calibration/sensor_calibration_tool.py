@@ -12,8 +12,11 @@ import pandas as pd
 # base classes to make custom sets accessible as iterables
 from collections.abc import Sequence
 
+# Plotting
+import matplotlib.pyplot as plt
 
-class DictCollection(Sequence):
+
+class ExperimentData(Sequence):
     def __init__(self, dicts=None):
         # Check if variable submitted is iterable, if so, check for dictionaries as items
         if dicts is not None:
@@ -46,6 +49,13 @@ class DictCollection(Sequence):
     def append(self, d):
         self.data_dicts.append(d)
 
+def plot(dict_list: ExperimentData):
+    # Psuedo
+    # 1. Make subplot layout
+    # 2. Plot each sensor and mark10 either on same plots or stacked plots
+        # Make legends reflect which layout is chosen
+    pass
+
 
 def read_tactile_data(filename:str, parent_directory=SENSOR_FILE_PATH) -> np.array:
     f = os.path.join(parent_directory,filename)
@@ -73,24 +83,29 @@ def get_data_files(directory:str, common_filename_txt=None, extension=".csv"):
     return filenames
 
 
+
 if __name__ == "__main__":
     # Get sensor files (loaded in order of naming) and data
     sensor_data_filenames = get_data_files(SENSOR_FILE_PATH, common_filename_txt="rightsensor_cell")
     print("\n sensor loaded files: ")
-    data = DictCollection()
-    for f in sensor_data_filenames:
+    data = ExperimentData()
+    for i, f in enumerate(sensor_data_filenames):
         print("Loading: ", f)
-        data.append({"raw" : read_tactile_data(f)})
+        data.append({"raw_sensor" : read_tactile_data(f)})
 
-    print(data)
+        # Make timestamps start at 0 and convert to seconds
+        data[i]["raw_sensor"][:,0] = (data[i]["raw_sensor"][:,0] - data[i]["raw_sensor"][0,0])/1000
+
+        # Remove NAN column
+        data[i]["raw_sensor"] = np.delete(data[i]["raw_sensor"], -1, axis=1)
 
 
     # Get mark10 files (loaded in order of naming) and data
     mark10_data_filenames = get_data_files(MARK10_FILE_PATH, common_filename_txt="right_sensor")
     print("\n Mark10 loaded files: ")
-    for i in mark10_data_filenames:
-        print("Loading: ", i)
+    for i, f in enumerate(mark10_data_filenames):
+        print("Loading: ", f)
+        data[i]["raw_mark10"] = read_mark10_data(f)
 
+    
 
-    print("_________________________________________")
-    a = DictCollection()    
