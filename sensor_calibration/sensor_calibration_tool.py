@@ -9,6 +9,36 @@ sys.path.append(SENSOR_FILE_PATH)
 import numpy as np
 import pandas as pd
 
+# base classes to make custom sets accessible as iterables
+from collections.abc import Sequence
+
+
+class DictCollection(Sequence):
+    def __init__(self, dicts=None):
+        # Check if variable submitted is iterable, if so, check for dictionaries as items
+        if dicts is not None:
+            try:
+                iter_check = iter(dicts)
+                # convert to lists cause convenient, tuples are immutable
+                dicts = list(dicts)
+                if isinstance(dicts[0],dict):
+                    self.data_dicts = dicts
+                else:
+                    self.data_dicts = []
+            except TypeError:
+                    self.data_dicts = []
+        else:
+            self.data_dicts = []
+
+        super().__init__()
+
+    def __getitem__(self,i):
+        return self.data_dicts[i]
+
+    def __len__(self):
+        return len(self.data_dicts)
+
+
 
 def read_tactile_data(filename:str) -> np.array:
     table = pd.read_csv("filename", skiprows=1)
@@ -38,12 +68,18 @@ if __name__ == "__main__":
     # Get sensor files (loaded in order of naming) and data
     sensor_data_filenames = get_data_files(SENSOR_FILE_PATH, common_filename_txt="rightsensor_cell")
     print("\n sensor loaded files: ")
+    
     for i in sensor_data_filenames:
-        print(i)
+        print("Loading: ", i)
 
+
+
+    # Get mark10 files (loaded in order of naming) and data
     mark10_data_filenames = get_data_files(MARK10_FILE_PATH, common_filename_txt="right_sensor")
     print("\n Mark10 loaded files: ")
     for i in mark10_data_filenames:
-        print(i)
+        print("Loading: ", i)
 
-    
+
+    print("_________________________________________")
+    a = DictCollection()    
