@@ -64,7 +64,6 @@ def plot_data(dict_list: ExperimentData, finger="right", sensor_key='sensor_raw'
             axs[1][i].plot(dict_list[i]['mark10_raw'][:,-1],  dict_list[i]['mark10_raw'][:,1])
     plt.show()
     
-
 def read_tactile_data(filename:str, parent_directory=SENSOR_FILE_PATH) -> np.array:
     f = os.path.join(parent_directory,filename)
     table = pd.read_csv(f, skiprows=1)
@@ -128,9 +127,20 @@ if __name__ == "__main__":
         data[i]["sensor_1pt"][:,1:] = data[i]["sensor_raw"][:,1:] - np.mean(data[i]["sensor_raw"][:sampling_freq*average_window,1:], axis=0)
 
     # Plot sensor data with 1pt calibration (to give delta)
-    # plot_data(data, finger="right", sensor_key='sensor_1pt', mark10_key='mark10_raw')
+    plot_data(data, finger="right", sensor_key='sensor_1pt', mark10_key='mark10_raw')
     
-    ############ Polyfitting
+    ############ PolyFitting Sensor Data ##############
+    # Steps:
+    # 1. Time synchronize sensor data and mark10 data
+    # 2. Use linear interpolation over mark10 data samples to get forces at sensor sample times
+    # 3. Fit and test polynomials
+    #   a. Plot for comparision
+    #   b. R^2 scores
+    #   c. Save polynomial coefficients
+
+    # Time synch - Visually grab points where load starts getting registered by sensor and load cell
+    # Store start of loading times in arrays to sync each experiment (1-7)
+    
     
     
 
