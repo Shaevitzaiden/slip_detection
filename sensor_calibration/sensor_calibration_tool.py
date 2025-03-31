@@ -49,13 +49,21 @@ class ExperimentData(Sequence):
     def append(self, d):
         self.data_dicts.append(d)
 
-def plot(dict_list: ExperimentData):
-    # Psuedo
-    # 1. Make subplot layout
-    # 2. Plot each sensor and mark10 either on same plots or stacked plots
-        # Make legends reflect which layout is chosen
-    pass
-
+def plot_data(dict_list: ExperimentData, finger="right", sensor_key='sensor_raw', mark10_key='mark10_raw'):
+    # Plot layout
+    px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+    fig, axs = plt.subplots(2,7,figsize=(1920*px,1080*px))
+    
+    if finger == "right":
+        for i in range(7):
+            axs[0][i].plot(dict_list[i]['sensor_raw'][:,0],  dict_list[i]['sensor_raw'][:,-(i+1)]) # indexed from right with negative indices since csv has ordering reversed
+            axs[1][i].plot(dict_list[i]['mark10_raw'][:,-1],  dict_list[i]['mark10_raw'][:,1])
+    else:
+        for i in range(7):
+            axs[0][i].plot(dict_list[i]['sensor_raw'][:,0],  dict_list[i]['sensor_raw'][:,-(i+8)]) # again indexed from right with negative indices since csv has ordering reversed
+            axs[1][i].plot(dict_list[i]['mark10_raw'][:,-1],  dict_list[i]['mark10_raw'][:,1])
+    plt.show()
+    
 
 def read_tactile_data(filename:str, parent_directory=SENSOR_FILE_PATH) -> np.array:
     f = os.path.join(parent_directory,filename)
@@ -91,13 +99,13 @@ if __name__ == "__main__":
     data = ExperimentData()
     for i, f in enumerate(sensor_data_filenames):
         print("Loading: ", f)
-        data.append({"raw_sensor" : read_tactile_data(f)})
+        data.append({"sensor_raw" : read_tactile_data(f)})
 
         # Make timestamps start at 0 and convert to seconds
-        data[i]["raw_sensor"][:,0] = (data[i]["raw_sensor"][:,0] - data[i]["raw_sensor"][0,0])/1000
+        data[i]["sensor_raw"][:,0] = (data[i]["sensor_raw"][:,0] - data[i]["sensor_raw"][0,0])/1000
 
         # Remove NAN column
-        data[i]["raw_sensor"] = np.delete(data[i]["raw_sensor"], -1, axis=1)
+        data[i]["sensor_raw"] = np.delete(data[i]["sensor_raw"], -1, axis=1)
 
 
     # Get mark10 files (loaded in order of naming) and data
@@ -105,7 +113,26 @@ if __name__ == "__main__":
     print("\n Mark10 loaded files: ")
     for i, f in enumerate(mark10_data_filenames):
         print("Loading: ", f)
-        data[i]["raw_mark10"] = read_mark10_data(f)
+        data[i]["mark10_raw"] = read_mark10_data(f)
+
+    # Plot raw data
+    # plot_data(data, finger="right", sensor_key='sensor_raw', mark10_key='mark10_raw')
+
+    ############ Sensor 1-point calibration ############
+    # Average and subtract off sensor readings from first second where sensors are unloaded
+    sampling_freq = 20 # Hz
+    average_window = 1 # seconds
+
+    for i in range(7):
+        data[i]["sensor_1pt"] = data[i]["sensor_raw"]
+        data[i]["sensor_1pt"][:,1:] = data[i]["sensor_raw"][:,1:] - np.mean(data[i]["sensor_raw"][:sampling_freq*average_window,1:], axis=0)
+
+    # Plot sensor data with 1pt calibration (to give delta)
+    # plot_data(data, finger="right", sensor_key='sensor_1pt', mark10_key='mark10_raw')
+    
+    ############ Polyfitting
+    
+    
 
     
 
