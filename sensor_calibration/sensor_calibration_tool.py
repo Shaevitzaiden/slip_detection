@@ -56,12 +56,15 @@ def plot_data(dict_list: ExperimentData, finger="right", sensor_key='sensor_raw'
     
     if finger == "right":
         for i in range(7):
-            axs[0][i].plot(dict_list[i]['sensor_raw'][:,0],  dict_list[i]['sensor_raw'][:,-(i+1)]) # indexed from right with negative indices since csv has ordering reversed
-            axs[1][i].plot(dict_list[i]['mark10_raw'][:,-1],  dict_list[i]['mark10_raw'][:,1])
+            # axs[0][i].plot(dict_list[i]['sensor_raw'][:,0],  dict_list[i]['sensor_raw'][:,-(i+1)]) # indexed from right with negative indices since csv has ordering reversed
+            axs[0][i].plot(dict_list[i][sensor_key][:,-(i+1)]) # indexed from right with negative indices since csv has ordering reversed
+            
+            # axs[1][i].plot(dict_list[i]['mark10_raw'][:,-1],  dict_list[i]['mark10_raw'][:,1])
+            axs[1][i].plot(dict_list[i][mark10_key][:,0],  dict_list[i][mark10_key][:,1])
     else:
         for i in range(7):
-            axs[0][i].plot(dict_list[i]['sensor_raw'][:,0],  dict_list[i]['sensor_raw'][:,-(i+8)]) # again indexed from right with negative indices since csv has ordering reversed
-            axs[1][i].plot(dict_list[i]['mark10_raw'][:,-1],  dict_list[i]['mark10_raw'][:,1])
+            axs[0][i].plot(dict_list[i][sensor_key][:,0],  dict_list[i][sensor_key][:,-(i+8)]) # again indexed from right with negative indices since csv has ordering reversed
+            axs[1][i].plot(dict_list[i][mark10_key][:,-1],  dict_list[i][mark10_key][:,1])
     plt.show()
     
 def read_tactile_data(filename:str, parent_directory=SENSOR_FILE_PATH) -> np.array:
@@ -129,7 +132,7 @@ if __name__ == "__main__":
         data[i]["sensor_1pt"][:,1:] = data[i]["sensor_raw"][:,1:] - np.mean(data[i]["sensor_raw"][:sampling_freq*average_window,1:], axis=0)
 
     # Plot sensor data with 1pt calibration (to give delta)
-    plot_data(data, finger="right", sensor_key='sensor_1pt', mark10_key='mark10_raw')
+    # plot_data(data, finger="right", sensor_key='sensor_1pt', mark10_key='mark10_raw')
 
     
     ###################################################
@@ -145,14 +148,15 @@ if __name__ == "__main__":
     # 1. Time synch - Visually grab points where load starts getting registered by sensor and load cell
     # Store start of loading times in arrays to sync each experiment (1-7), 
     # Shift all data by these indices, plot to visually check front and back end alignment of load curves
-    sensor_start_idx = []
-    mark10_start_idx = []
+    sensor_start_idx = [57, 47, 70, 49, 44, 36, 33]
+    mark10_start_idx = [58, 49, 73, 53, 48, 34, 31]
     for i in range(7):
         data[i]["sensor_1pt_synched"] = data[i]["sensor_1pt"][sensor_start_idx[i]:,:] # Only store values after synch point
-        data[i]["sensor_1pt_synched"][:,0] = data[i]["sensor_1pt_synched"][0,0] # Set start of synched time to zero
+        data[i]["sensor_1pt_synched"][:,0] = data[i]["sensor_1pt_synched"][:,0] - data[i]["sensor_1pt_synched"][0,0] # Set start of synched time to zero
 
         data[i]["mark10_synched"] = data[i]["mark10_raw"][mark10_start_idx[i]:,:] # Only store values after synch point
-        data[i]["mark10_synched"][:,0] = data[i]["mark10_synched"][0,-1] # Set start of synched time to zero
+        data[i]["mark10_synched"][:,-1] = data[i]["mark10_synched"][:,-1] - data[i]["mark10_synched"][0,-1] # Set start of synched time to zero
+        data[i]["mark10_synched"][:,0] = data[i]["mark10_synched"][:,0] - data[i]["mark10_synched"][0,0] 
 
     
     plot_data(data, sensor_key='sensor_1pt_synched', mark10_key='mark10_synched')    
