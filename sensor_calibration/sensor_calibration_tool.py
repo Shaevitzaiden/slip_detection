@@ -11,12 +11,17 @@ import pandas as pd
 from scipy.signal import savgol_filter
 import numpy.polynomial.polynomial as poly
 from sklearn.metrics import r2_score
+import datetime
 
 # base classes to make custom sets accessible as iterables
 from collections.abc import Sequence
 
 # Plotting
 import matplotlib.pyplot as plt
+
+# Store calibrations
+import pickle
+from sensor_calibration import load_coeffs, apply_calibration
 
 
 class ExperimentData(Sequence):
@@ -211,8 +216,8 @@ if __name__ == "__main__":
         data[i]['sensor_cal_force'] = data[i]["sensor_1pt_synched"].copy()
         data[i]['sensor_cal_force'][:,-(i+1)] = poly.polyval(data[i]["sensor_1pt_synched"][:,-(i+1)], c.convert().coef)
 
-    
 
+    # 4. Plot polyfit function with sensor inputs against load cell values to visually check match. Run R^2
     px = 1/plt.rcParams['figure.dpi']  # pixel in inches
     fig, axs = plt.subplots(1,7,figsize=(1920*px,1080*px))
     x = np.arange(0,15000,step=1)
@@ -228,16 +233,53 @@ if __name__ == "__main__":
         # axs[i].set_aspect('equal')
     axs[i].legend()
     plt.show()
+
+    # 6.  Plot to show calibration function predictions from sensor data vs the load cell data
+    # plot_data_overlapping(data, sensor_key='sensor_cal_force', mark10_key='mark10_synched')  # Scale sensor data to get a sense of time synchronicity between sensor and mark10 data
+
+    # 7. If functions look good, save coefficients for reloading later, using pickle cause its easy
+    now = datetime.datetime.now()
+    date_time_string = now.strftime("%Yy-%mm-%dd_%Hh-%Mm-%Ss")
+    filename = "right_sensor_calibration_coeffs_" +date_time_string+ ".pickle"
+    filepath = os.path.abspath(os.path.join(os.path.dirname(__file__),"calibrations", filename))
+    with open(filepath, 'wb') as file:
+        pickle.dump(coeffs, file)
+
+
+    # test calibration loading
+    loaded_coeffs = load_coeffs(filepath)
+    for i in range(7):
+        print("-------------------")
+        print("saved:  ", coeffs[i].convert().coef)
+        print("loaded: ", loaded_coeffs[i].convert().coef)
+
+    # test apply_calibration function
+    px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+    fig, axs = plt.subplots(1,7,figsize=(1920*px,1080*px))
+    sensor_output = np.zeros((end_idx,7))
+    for i in range(7):
+        for t in range(end_idx):
+            sensor_output[t,:] = (apply_calibration(data[i]["sensor_1pt_synched"][t,-7:], loaded_coeffs))
+            
+            break
+        axs[i].plot(sensor_output[:,-(i+1)], color="red")
+        axs[i].plot(data[i]['mark10_synched'][:end_idx,1], '--', color="black")
+    plt.show()
+
+    # output = np.zeros((7,end_idx,7))
+    # for i in range(7):
+    #     for t in range(end_idx):
+    #         d = np.flip(data[i]["sensor_1pt_synched"][t])
+    #         print(data[i]["sensor_1pt_synched"][t,-7:])
+        
+    #         output[i,t,:] = apply_calibration(data[i]["sensor_1pt_synched"][t,-7:], loaded_coeffs)
+
+    # px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+    # fig, axs = plt.subplots(1,7,figsize=(1920*px,1080*px))
+    # for i in range(7):
+    #     axs[i].plot(output[i,:,-(i+1)], '--', color="red")
+    #     axs[i].plot(data[i]['mark10_synched'][:end_idx,1], 'black')
+    # plt.show()
+        
     
-    plot_data_overlapping(data, sensor_key='sensor_cal_force', mark10_key='mark10_synched')  # Scale sensor data to get a sense of time synchronicity between sensor and mark10 data
-
-    # 4. Plot polyfit function with sensor inputs against load cell values to visually check match. Run R^2
-
-    # 5. If functions look good, save coefficients for reloading later
-
-
     
-    
-
-    
-
