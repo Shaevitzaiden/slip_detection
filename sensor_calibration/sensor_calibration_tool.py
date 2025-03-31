@@ -138,9 +138,32 @@ if __name__ == "__main__":
     #   b. R^2 scores
     #   c. Save polynomial coefficients
 
-    # Time synch - Visually grab points where load starts getting registered by sensor and load cell
-    # Store start of loading times in arrays to sync each experiment (1-7)
+    # 1. Time synch - Visually grab points where load starts getting registered by sensor and load cell
+    # Store start of loading times in arrays to sync each experiment (1-7), 
+    # Shift all data by these indices, plot to visually check front and back end alignment of load curves
+    sensor_start_idx = []
+    mark10_start_idx = []
+    for i in range(7):
+        data[i]["sensor_1pt_synched"] = data[i]["sensor_1pt"][sensor_start_idx[i]:,:] # Only store values after synch point
+        data[i]["sensor_1pt_synched"][:,0] = data[i]["sensor_1pt_synched"][0,0] # Set start of synched time to zero
+
+        data[i]["mark10_synched"] = data[i]["mark10_raw"][mark10_start_idx[i]:,:] # Only store values after synch point
+        data[i]["mark10_synched"][:,0] = data[i]["mark10_synched"][0,-1] # Set start of synched time to zero
+
     
+    plot_data(data, sensor_key='sensor_1pt_synched', mark10_key='mark10_synched')    
+
+    # 2. Perform interpolation to get values from sensor and load cell at same timestamps
+    # Use np.interp on both, input should be array of uniformly spaced times and outputs should be sensor readings and load cell readings
+
+    # 3. Take interpolation outputs and use sensor readings as input (independent var) and load cell readings as output (dependent var).
+    # Check over a couple of different polynomials, specifically cubic, quadratic, and linear.
+
+    # 4. Plot polyfit function with sensor inputs against load cell values to visually check match. Run R^2
+
+    # 5. If functions look good, save coefficients for reloading later
+
+
     
     
 
