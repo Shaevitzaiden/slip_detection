@@ -218,21 +218,21 @@ if __name__ == "__main__":
 
 
     # 4. Plot polyfit function with sensor inputs against load cell values to visually check match. Run R^2
-    px = 1/plt.rcParams['figure.dpi']  # pixel in inches
-    fig, axs = plt.subplots(1,7,figsize=(1920*px,1080*px))
-    x = np.arange(0,15000,step=1)
-    for i in range(7):
-        axs[i].plot(data[i]['sensor_1pt_synched'][:int(end_idx/2),-(i+1)], data[i]['mark10_synched'][:int(end_idx/2),1], '--',color='red', label="Press")
-        axs[i].plot(data[i]['sensor_1pt_synched'][int(end_idx/2):end_idx,-(i+1)], data[i]['mark10_synched'][int(end_idx/2):end_idx,1], color='blue', label="release")
-        axs[i].plot(x, poly.polyval(x, coeffs[i].convert().coef), color="black", label="Fit function")
+    # px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+    # fig, axs = plt.subplots(1,7,figsize=(1920*px,1080*px))
+    # x = np.arange(0,15000,step=1)
+    # for i in range(7):
+    #     axs[i].plot(data[i]['sensor_1pt_synched'][:int(end_idx/2),-(i+1)], data[i]['mark10_synched'][:int(end_idx/2),1], '--',color='red', label="Press")
+    #     axs[i].plot(data[i]['sensor_1pt_synched'][int(end_idx/2):end_idx,-(i+1)], data[i]['mark10_synched'][int(end_idx/2):end_idx,1], color='blue', label="release")
+    #     axs[i].plot(x, poly.polyval(x, coeffs[i].convert().coef), color="black", label="Fit function")
 
-        y = data[i]['mark10_synched'][:end_idx,1]
-        y_pred = poly.polyval(data[i]['sensor_1pt_synched'][:end_idx,-(i+1)], coeffs[i].convert().coef)
-        R2 = r2_score(y, y_pred)
-        axs[i].set_title("R^2 = {0}".format(np.round(R2,2)))
-        # axs[i].set_aspect('equal')
-    axs[i].legend()
-    plt.show()
+    #     y = data[i]['mark10_synched'][:end_idx,1]
+    #     y_pred = poly.polyval(data[i]['sensor_1pt_synched'][:end_idx,-(i+1)], coeffs[i].convert().coef)
+    #     R2 = r2_score(y, y_pred)
+    #     axs[i].set_title("R^2 = {0}".format(np.round(R2,2)))
+    #     # axs[i].set_aspect('equal')
+    # axs[i].legend()
+    # plt.show()
 
     # 6.  Plot to show calibration function predictions from sensor data vs the load cell data
     # plot_data_overlapping(data, sensor_key='sensor_cal_force', mark10_key='mark10_synched')  # Scale sensor data to get a sense of time synchronicity between sensor and mark10 data
@@ -253,33 +253,19 @@ if __name__ == "__main__":
         print("saved:  ", coeffs[i].convert().coef)
         print("loaded: ", loaded_coeffs[i].convert().coef)
 
+    print(np.flip(data[0]["sensor_raw"][0,-7:]))
     # test apply_calibration function
     px = 1/plt.rcParams['figure.dpi']  # pixel in inches
     fig, axs = plt.subplots(1,7,figsize=(1920*px,1080*px))
     sensor_output = np.zeros((end_idx,7))
     for i in range(7):
         for t in range(end_idx):
-            sensor_output[t,:] = (apply_calibration(data[i]["sensor_1pt_synched"][t,-7:], loaded_coeffs))
-            
-            break
-        axs[i].plot(sensor_output[:,-(i+1)], color="red")
+            sensor_output[t,:] = (apply_calibration(np.flip(data[i]["sensor_1pt_synched"][t,-7:]), loaded_coeffs))
+        axs[i].plot(sensor_output[:,i], color="red")
         axs[i].plot(data[i]['mark10_synched'][:end_idx,1], '--', color="black")
     plt.show()
 
-    # output = np.zeros((7,end_idx,7))
-    # for i in range(7):
-    #     for t in range(end_idx):
-    #         d = np.flip(data[i]["sensor_1pt_synched"][t])
-    #         print(data[i]["sensor_1pt_synched"][t,-7:])
-        
-    #         output[i,t,:] = apply_calibration(data[i]["sensor_1pt_synched"][t,-7:], loaded_coeffs)
-
-    # px = 1/plt.rcParams['figure.dpi']  # pixel in inches
-    # fig, axs = plt.subplots(1,7,figsize=(1920*px,1080*px))
-    # for i in range(7):
-    #     axs[i].plot(output[i,:,-(i+1)], '--', color="red")
-    #     axs[i].plot(data[i]['mark10_synched'][:end_idx,1], 'black')
-    # plt.show()
+   
         
     
     
