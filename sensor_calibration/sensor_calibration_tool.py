@@ -90,9 +90,9 @@ def get_data_files(directory:str, common_filename_txt=None, extension=".csv"):
     return filenames
 
 
-
 if __name__ == "__main__":
-    # Get sensor files (loaded in order of naming) and data
+    ####################################################################
+    ############## Get and Load Sensor and Mark10 Files ################
     sensor_data_filenames = get_data_files(SENSOR_FILE_PATH, common_filename_txt="rightsensor_cell")
     print("\n sensor loaded files: ")
     data = ExperimentData()
@@ -117,6 +117,8 @@ if __name__ == "__main__":
     # Plot raw data
     # plot_data(data, finger="right", sensor_key='sensor_raw', mark10_key='mark10_raw')
 
+
+    ####################################################
     ############ Sensor 1-point calibration ############
     # Average and subtract off sensor readings from first second where sensors are unloaded
     sampling_freq = 20 # Hz
@@ -128,7 +130,9 @@ if __name__ == "__main__":
 
     # Plot sensor data with 1pt calibration (to give delta)
     plot_data(data, finger="right", sensor_key='sensor_1pt', mark10_key='mark10_raw')
+
     
+    ###################################################
     ############ PolyFitting Sensor Data ##############
     # Steps:
     # 1. Time synchronize sensor data and mark10 data
